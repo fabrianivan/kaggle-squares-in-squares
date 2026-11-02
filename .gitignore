@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Output files
+output/*.csv
+output/*.json
+output/*.log
+
+# Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large data files (keep structure)
+!output/.gitkeep
+!notebooks/.gitkeep
