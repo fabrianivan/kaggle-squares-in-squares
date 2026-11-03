@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/fabrianivan/.local/share/kaggle-venv/bin/python3.14
 """
 Advanced Optimizer - Multi-strategy packing improvement system
 Combines multiple optimization techniques with intelligent exploration
@@ -200,7 +200,7 @@ def run_optimizer(baseline_csv, output_dir, n_workers=8, target_puzzles=None, ma
     
     # Load Danil's packings
     try:
-        danil_nb_path = Path(__file__).parent / 'danil_nb' / 'squares-in-squares-living-atlas-of-tight-packings.ipynb'
+        danil_nb_path = Path('/Users/fabrianivan/kaggle-squares-in-squares/data/external_packings/squares-in-squares-living-atlas-of-tight-packings.ipynb')
         if danil_nb_path.exists():
             with open(danil_nb_path) as f:
                 import base64, lzma
@@ -218,7 +218,7 @@ def run_optimizer(baseline_csv, output_dir, n_workers=8, target_puzzles=None, ma
     
     # Load PJ's record-breaking packings
     try:
-        pj_nb_path = Path(__file__).parent / 'pj_nb' / 'three-square-packings-that-beat-the-records.ipynb'
+        pj_nb_path = Path('/Users/fabrianivan/kaggle-squares-in-squares/data/external_packings/three-square-packings-that-beat-the-records.ipynb')
         if pj_nb_path.exists():
             with open(pj_nb_path) as f:
                 nb = json.load(f)
@@ -373,7 +373,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Advanced multi-strategy optimizer')
     parser.add_argument('--baseline', type=str, 
-                       default='submission_merged_22.253319.csv',
+                       default='/Users/fabrianivan/kaggle-squares-in-squares/data/submission_merged_22.253319.csv',
                        help='Baseline submission CSV')
     parser.add_argument('--output', type=str, 
                        default='advanced_out',

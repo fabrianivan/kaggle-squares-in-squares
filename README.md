@@ -46,7 +46,8 @@ python advanced_optimizer.py --hours 8 --workers 8
 
 ## Current Score
 
-Baseline: **22.253319**
+- Baseline: **22.253319** (`data/submission_merged_22.253319.csv`)
+- Best (certified): **22.251602** (`output/submission_22.251602.csv`) — precision-preserving union of baseline + Aleksandr public candidate (2026-11-02) + Danil/PJ notebook packings, per-puzzle-best, certified by the official interval-SAT metric (0 rejected, 500500 rows).
 
 Goal: Reduce through better packings
 

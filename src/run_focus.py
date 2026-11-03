@@ -1,7 +1,8 @@
+#!/Users/fabrianivan/.local/share/kaggle-venv/bin/python3.14
 import sys, os, json, math, time
 from concurrent.futures import ProcessPoolExecutor, as_completed
-sys.path.insert(0, '/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/tools')
-sys.path.insert(0, '/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/data/alexchilton')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'tools'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'metric'))
 import metric
 import cpu_axis_reclosure, cpu_contact_polish, packing_geometry
 import numpy as np, pandas as pd
@@ -24,10 +25,10 @@ def solve_job(args):
     return n, L0, L0, None
 
 def main():
-    df_curr = pd.read_csv('/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/submission_merged_22.253319.csv')
+    df_curr = pd.read_csv('/Users/fabrianivan/kaggle-squares-in-squares/data/submission_merged_22.253319.csv')
     cur = {int(n): g.sort_values('square_id')[['x', 'y', 'angle']].to_numpy(float) for n, g in df_curr.groupby('n')}
 
-    with open('/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/danil_nb/squares-in-squares-living-atlas-of-tight-packings.ipynb') as f:
+    with open('/Users/fabrianivan/kaggle-squares-in-squares/data/external_packings/squares-in-squares-living-atlas-of-tight-packings.ipynb') as f:
         import base64, lzma
         nb = json.load(f)
     c22 = nb['cells'][22].get('source', '')
@@ -76,7 +77,7 @@ def main():
     print(f'Finished in {time.time() - t0:.1f}s. New improvements found by search: {len(improvements)}')
     # Save improvements
     out_dict = {str(n): q.tolist() for n, (_, q) in improvements.items()}
-    with open('/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/focus_improvements.json', 'w') as out_f:
+    with open('/Users/fabrianivan/kaggle-squares-in-squares/output/focus_improvements.json', 'w') as out_f:
         json.dump(out_dict, out_f)
 
 if __name__ == '__main__':

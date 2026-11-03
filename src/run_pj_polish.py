@@ -1,13 +1,14 @@
-import json, sys, math, numpy as np, pandas as pd
+#!/Users/fabrianivan/.local/share/kaggle-venv/bin/python3.14
+import json, sys, os, math, numpy as np, pandas as pd
 from concurrent.futures import ProcessPoolExecutor, as_completed
-sys.path.insert(0, '/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/tools')
-sys.path.insert(0, '/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/data/alexchilton')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'tools'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'metric'))
 import packing_geometry, cpu_axis_reclosure, cpu_contact_polish, metric
 
 def try_polish(args):
     n, p_init, seed, trust, tie, rounds = args
     import sys
-    sys.path.insert(0, '/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/tools')
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'tools'))
     import cpu_axis_reclosure, cpu_contact_polish, packing_geometry
     L_in = packing_geometry.side(p_init)
     try:
@@ -22,14 +23,14 @@ def try_polish(args):
     return n, L_in, L_in, None
 
 def main():
-    with open('pj_nb/three-square-packings-that-beat-the-records.ipynb') as f:
+    with open('/Users/fabrianivan/kaggle-squares-in-squares/data/external_packings/three-square-packings-that-beat-the-records.ipynb') as f:
         nb = json.load(f)
     src = ''.join(nb['cells'][3]['source'])
     scope = {}
     exec(src, scope)
     pj_packings = scope['PACKINGS']
 
-    df_curr = pd.read_csv('submission_merged_22.253319.csv')
+    df_curr = pd.read_csv('/Users/fabrianivan/kaggle-squares-in-squares/data/submission_merged_22.253319.csv')
     cur = {}
     for n in [232, 260, 299]:
         cur[n] = df_curr[df_curr['n'] == n].sort_values('square_id')[['x', 'y', 'angle']].to_numpy(float)

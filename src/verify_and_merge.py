@@ -1,9 +1,10 @@
+#!/Users/fabrianivan/.local/share/kaggle-venv/bin/python3.14
 import os, sys, math, json, csv
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import numpy as np, pandas as pd
 
-sys.path.insert(0, '/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/tools')
-sys.path.insert(0, '/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/data/alexchilton')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'tools'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'metric'))
 import packing_geometry, metric
 
 def verify_worker(item):
@@ -14,20 +15,20 @@ def verify_worker(item):
 
 def main():
     print('Loading current baseline...')
-    df_curr = pd.read_csv('/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/submission_merged_22.253319.csv')
+    df_curr = pd.read_csv('/Users/fabrianivan/kaggle-squares-in-squares/data/submission_merged_22.253319.csv')
     cur = {}
     for n, g in df_curr.groupby('n'):
         p = g.sort_values('square_id')[['x', 'y', 'angle']].to_numpy(float)
         cur[n] = (packing_geometry.side(p), g.sort_values('square_id')[['x', 'y', 'angle']].to_dict('records'))
 
     print('Loading aleksandr candidate...')
-    df_cand = pd.read_csv('/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/data/aleksandr_drive/kaggle_public_candidate_20261102.csv')
+    df_cand = pd.read_csv('/Users/fabrianivan/kaggle-squares-in-squares/data/external_packings/kaggle_public_candidate_20261102.csv')
     cand_rows = {}
     for n, g in df_cand.groupby('n'):
         cand_rows[n] = g.sort_values('square_id')[['x', 'y', 'angle']].to_dict('records')
 
     # Danil replay for 457 and 984
-    with open('/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/danil_nb/squares-in-squares-living-atlas-of-tight-packings.ipynb') as f:
+    with open('/Users/fabrianivan/kaggle-squares-in-squares/data/external_packings/squares-in-squares-living-atlas-of-tight-packings.ipynb') as f:
         import base64, lzma
         nb = json.load(f)
     scope = {}
@@ -95,7 +96,7 @@ def main():
         else:
             final_puzzles[n] = cur[n][1]
 
-    out_csv = '/Users/fabrianivan/.gemini/antigravity-ide/scratch/squares-in-squares/submission_merged_22.251603.csv'
+    out_csv = '/Users/fabrianivan/kaggle-squares-in-squares/output/submission_merged_22.251603.csv'
     total_rows = 0
     with open(out_csv, 'w', newline='') as f:
         writer = csv.writer(f)

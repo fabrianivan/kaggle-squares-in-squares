@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/fabrianivan/.local/share/kaggle-venv/bin/python3.14
 """
 Quick Wins - Target the highest-value improvements first
 Focus on puzzles where we know improvements exist or are most likely
@@ -83,7 +83,7 @@ def main():
     print("="*80)
     
     # Load baseline
-    baseline_csv = 'submission_merged_22.253319.csv'
+    baseline_csv = '/Users/fabrianivan/kaggle-squares-in-squares/data/submission_merged_22.253319.csv'
     print(f"\nLoading baseline: {baseline_csv}")
     df_curr = pd.read_csv(baseline_csv)
     cur = {int(n): g.sort_values('square_id')[['x', 'y', 'angle']].to_numpy(float) 
@@ -94,7 +94,7 @@ def main():
     
     # Danil's packings
     try:
-        with open('danil_nb/squares-in-squares-living-atlas-of-tight-packings.ipynb') as f:
+        with open('/Users/fabrianivan/kaggle-squares-in-squares/data/external_packings/squares-in-squares-living-atlas-of-tight-packings.ipynb') as f:
             import base64, lzma
             nb = json.load(f)
         scope = {}
@@ -111,7 +111,7 @@ def main():
     
     # PJ's packings (299, 260, 232)
     try:
-        with open('pj_nb/three-square-packings-that-beat-the-records.ipynb') as f:
+        with open('/Users/fabrianivan/kaggle-squares-in-squares/data/external_packings/three-square-packings-that-beat-the-records.ipynb') as f:
             nb = json.load(f)
         scope = {}
         exec(''.join(nb['cells'][3]['source']), scope)
@@ -218,7 +218,7 @@ def main():
         print(f"New score: {new_score:.10f}")
         
         # Save
-        out_dir = Path('quick_wins_out')
+        out_dir = Path('/Users/fabrianivan/kaggle-squares-in-squares/output/quick_wins_out')
         out_dir.mkdir(exist_ok=True)
         
         # Save improvements

@@ -33,3 +33,5 @@ Thumbs.db
 # Large data files (keep structure)
 !output/.gitkeep
 !notebooks/.gitkeep
+# Round29/21 working artifacts (regenerated, large)
+artifacts/
