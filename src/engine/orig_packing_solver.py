@@ -25,8 +25,12 @@ from scipy.sparse import coo_matrix, csc_matrix
 # Add starter kit to sys.path for verification
 import os
 import sys
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+if "__file__" in globals():
+    ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+else:
+    ROOT = os.path.abspath(".")
 sys.path.insert(0, os.path.join(ROOT, "data/new_sources/alexchilton_starter_kit"))
+sys.path.insert(0, "/kaggle/input/squares-in-squares-starter-kit")
 try:
     import metric
 except ImportError:

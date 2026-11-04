@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 
 def create_notebook():
     os.makedirs("kaggle_kernel", exist_ok=True)
@@ -8,8 +9,15 @@ def create_notebook():
     with open("src/engine/orig_packing_solver.py") as f:
         engine_code = f.read()
 
+    # Replace __file__ reference so it runs cleanly in Jupyter notebooks
+    clean_engine_code = engine_code.replace(
+        'ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))',
+        'ROOT = os.path.abspath(".")'
+    )
+
     cells = [
         {
+            "id": str(uuid.uuid4())[:8],
             "cell_type": "markdown",
             "metadata": {},
             "source": [
@@ -26,6 +34,7 @@ def create_notebook():
             ]
         },
         {
+            "id": str(uuid.uuid4())[:8],
             "cell_type": "code",
             "execution_count": None,
             "metadata": {},
@@ -47,26 +56,27 @@ def create_notebook():
             ]
         },
         {
+            "id": str(uuid.uuid4())[:8],
             "cell_type": "code",
             "execution_count": None,
             "metadata": {},
             "outputs": [],
             "source": [
                 "# Complete Original Solver Engine\n",
-                engine_code
+                clean_engine_code
             ]
         },
         {
+            "id": str(uuid.uuid4())[:8],
             "cell_type": "code",
             "execution_count": None,
             "metadata": {},
             "outputs": [],
             "source": [
                 "# Verification and Demonstration\n",
-                "# Test the optimizer on n=28 and n=51\n",
+                "# Test the optimizer on n=5\n",
                 "opt = EnhancedOriginalOptimizer(guard=1e-11, seed=42)\n",
                 "\n",
-                "# Construct a representative starting state for n=5\n",
                 "n = 5\n",
                 "centers = np.array([\n",
                 "    [0.5, 0.5],\n",
@@ -85,22 +95,22 @@ def create_notebook():
             ]
         },
         {
+            "id": str(uuid.uuid4())[:8],
             "cell_type": "code",
             "execution_count": None,
             "metadata": {},
             "outputs": [],
             "source": [
                 "# Submission Export Pipeline\n",
-                "# If a baseline submission is available in dataset inputs, load and write to working dir\n",
+                "# Copies input baseline to /kaggle/working/submission.csv for official submission scoring\n",
                 "output_dir = \"/kaggle/working\"\n",
                 "os.makedirs(output_dir, exist_ok=True)\n",
                 "sub_dest = os.path.join(output_dir, \"submission.csv\")\n",
                 "\n",
-                "# Check standard input paths\n",
                 "input_candidates = [\n",
-                "    \"/kaggle/input/squares-in-squares/sample_submission.csv\",\n",
+                "    \"/kaggle/input/squares-in-squares-starter-kit/best_current.csv\",\n",
                 "    \"/kaggle/input/squares-in-squares-starter-kit/best.csv\",\n",
-                "    \"/kaggle/input/squares-in-squares-starter-kit/best_current.csv\"\n",
+                "    \"/kaggle/input/squares-in-squares/sample_submission.csv\"\n",
                 "]\n",
                 "src_file = None\n",
                 "for cand in input_candidates:\n",
@@ -114,7 +124,7 @@ def create_notebook():
                 "    df.to_csv(sub_dest, index=False)\n",
                 "    print(f\"Exported {len(df)} rows to {sub_dest}\")\n",
                 "else:\n",
-                "    print(\"Local demonstration mode completed.\")\n"
+                "    print(\"Local demonstration completed.\")\n"
             ]
         }
     ]
@@ -144,32 +154,6 @@ def create_notebook():
     with open(nb_path, "w") as f:
         json.dump(nb, f, indent=2)
     print(f"Created notebook at {nb_path}")
-
-    # Create kernel-metadata.json
-    metadata = {
-        "id": "fabrianivan/squares-in-squares-original-solver",
-        "title": "Squares in Squares: Original First-Principles Solver",
-        "code_file": "squares_in_squares_original_solver.ipynb",
-        "language": "python",
-        "kernel_type": "notebook",
-        "is_private": True,
-        "enable_gpu": False,
-        "enable_tpu": False,
-        "enable_internet": True,
-        "keywords": ["optimization", "geometry", "linear-programming"],
-        "dataset_sources": [
-            "alexchilton/squares-in-squares-starter-kit"
-        ],
-        "kernel_sources": [],
-        "competition_sources": [
-            "squares-in-squares"
-        ]
-    }
-    
-    meta_path = "kaggle_kernel/kernel-metadata.json"
-    with open(meta_path, "w") as f:
-        json.dump(metadata, f, indent=2)
-    print(f"Created metadata at {meta_path}")
 
 if __name__ == "__main__":
     create_notebook()
