@@ -95,9 +95,9 @@ class PackingState:
         records = [
             {
                 "square_id": i,
-                "x": f"{self.centers[i, 0]:.17f}",
-                "y": f"{self.centers[i, 1]:.17f}",
-                "angle": f"{self.angles[i]:.17f}"
+                "x": f"{float(self.centers[i, 0])!r}",
+                "y": f"{float(self.centers[i, 1])!r}",
+                "angle": f"{float(self.angles[i])!r}"
             }
             for i in range(self.n)
         ]
@@ -108,15 +108,17 @@ class PackingState:
 class ContinuousPenaltyRelaxer:
     """Differentiable penalty relaxation optimizer using L-BFGS to resolve overlaps."""
 
-    def __init__(self, n: int, target_side: float):
+    def __init__(self, n: int, target_side: float, overlap_weight: float = 1e6):
         self.n = n
         self.target_side = target_side
+        self.overlap_weight = overlap_weight
 
     def energy_and_grad(self, params: np.ndarray) -> Tuple[float, np.ndarray]:
         n = self.n
         centers = params[:2 * n].reshape(n, 2)
         angles = params[2 * n:]
         L = self.target_side
+        mu = self.overlap_weight
 
         grad = np.zeros_like(params)
         grad_c = grad[:2 * n].reshape(n, 2)
@@ -156,7 +158,7 @@ class ContinuousPenaltyRelaxer:
         grad_c[:, 1] += 2.0 * pen_t
         grad_a += 2.0 * pen_t * dhy
 
-        # 2. Pairwise SAT Penetration Penalty
+        # 2. Pairwise SAT Penetration Penalty (scaled by mu)
         tree = cKDTree(centers)
         pairs = list(tree.query_pairs(r=2.0))
 
@@ -185,22 +187,33 @@ class ContinuousPenaltyRelaxer:
                 if gap >= 0.0:
                     all_overlap = False
                     break
-                axis_data.append((gap, u, proj, is_i))
+                axis_data.append((gap, u, proj, is_i, ax_idx))
 
             if all_overlap and axis_data:
                 best_axis = max(axis_data, key=lambda item: item[0])
-                gap, u, proj, is_i = best_axis
+                gap, u, proj, is_i, ax_idx = best_axis
                 pen = -gap
-                total_energy += pen**2
+                total_energy += mu * pen**2
 
                 sign = 1.0 if proj >= 0 else -1.0
                 dpen_dc = -sign * u
-                grad_c[i] -= 2.0 * pen * dpen_dc
-                grad_c[j] += 2.0 * pen * dpen_dc
+                grad_c[i] -= 2.0 * mu * pen * dpen_dc
+                grad_c[j] += 2.0 * mu * pen * dpen_dc
 
-                d_rad = 0.5 * (-math.sin(d_th) * np.sign(cd) + math.cos(d_th) * np.sign(sd))
-                grad_a[i] -= 2.0 * pen * d_rad
-                grad_a[j] += 2.0 * pen * (-d_rad)
+                d_rad_ddth = 0.5 * (-math.sin(d_th) * np.sign(cd) + math.cos(d_th) * np.sign(sd))
+                if is_i:
+                    u_perp = np.array([-s1, c1]) if ax_idx == 0 else np.array([-c1, -s1])
+                    dgap_da1 = sign * float(np.dot(d, u_perp)) + d_rad_ddth
+                    dgap_da2 = -d_rad_ddth
+                else:
+                    u_perp = np.array([-s2, c2]) if ax_idx == 0 else np.array([-c2, -s2])
+                    dgap_da1 = -d_rad_ddth
+                    dgap_da2 = sign * float(np.dot(d, u_perp)) + d_rad_ddth
+
+                # pen = -gap => d(pen)/da = -dgap/da
+                # d(mu * pen^2)/da = 2 * mu * pen * (-dgap/da) = -2 * mu * pen * dgap/da
+                grad_a[i] -= 2.0 * mu * pen * dgap_da1
+                grad_a[j] -= 2.0 * mu * pen * dgap_da2
 
         return float(total_energy), grad
 
@@ -275,10 +288,10 @@ class MultiAxisContactLPSolver:
             c2, s2 = math.cos(a2), math.sin(a2)
 
             normals = [
-                np.array([c1, s1]),
-                np.array([-s1, c1]),
-                np.array([c2, s2]),
-                np.array([-s2, c2])
+                (np.array([c1, s1]), True, 0),
+                (np.array([-s1, c1]), True, 1),
+                (np.array([c2, s2]), False, 0),
+                (np.array([-s2, c2]), False, 1)
             ]
 
             d_th = a2 - a1
@@ -286,30 +299,44 @@ class MultiAxisContactLPSolver:
             sd = math.sin(d_th)
             rad = 0.5 * (1.0 + abs(cd) + abs(sd))
 
-            for u in normals:
+            for u, is_i, ax_idx in normals:
                 proj = float(np.dot(d, u))
                 gap = abs(proj) - rad
                 if gap < 0.12:
                     sign = 1.0 if proj >= 0 else -1.0
                     nx, ny = u[0], u[1]
 
-                    d_rad = 0.5 * (-math.sin(d_th) * np.sign(cd) + math.cos(d_th) * np.sign(sd))
+                    d_rad_ddth = 0.5 * (-math.sin(d_th) * np.sign(cd) + math.cos(d_th) * np.sign(sd))
+                    if is_i:
+                        u_perp = np.array([-s1, c1]) if ax_idx == 0 else np.array([-c1, -s1])
+                        dgap_da1 = sign * float(np.dot(d, u_perp)) + d_rad_ddth
+                        dgap_da2 = -d_rad_ddth
+                    else:
+                        u_perp = np.array([-s2, c2]) if ax_idx == 0 else np.array([-c2, -s2])
+                        dgap_da1 = -d_rad_ddth
+                        dgap_da2 = sign * float(np.dot(d, u_perp)) + d_rad_ddth
 
                     r_dict = {
                         3 * i: sign * nx,
                         3 * i + 1: sign * ny,
                         3 * j: -sign * nx,
                         3 * j + 1: -sign * ny,
-                        3 * i + 2: -d_rad,
-                        3 * j + 2: d_rad
+                        3 * i + 2: -dgap_da1,
+                        3 * j + 2: -dgap_da2
                     }
                     add_constraint(r_dict, gap - self.guard)
 
                     if min(abs(cd), abs(sd)) < 1e-4:
                         for slope in [-0.5, 0.5]:
+                            if is_i:
+                                k_da1 = sign * float(np.dot(d, u_perp)) + slope
+                                k_da2 = -slope
+                            else:
+                                k_da1 = -slope
+                                k_da2 = sign * float(np.dot(d, u_perp)) + slope
                             r_kink = r_dict.copy()
-                            r_kink[3 * i + 2] = -slope
-                            r_kink[3 * j + 2] = slope
+                            r_kink[3 * i + 2] = -k_da1
+                            r_kink[3 * j + 2] = -k_da2
                             add_constraint(r_kink, gap - self.guard)
 
         # 2. Wall Constraints
