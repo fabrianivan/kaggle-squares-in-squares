@@ -30,7 +30,7 @@ def main():
     exec(src, scope)
     pj_packings = scope['PACKINGS']
 
-    df_curr = pd.read_csv('/Users/fabrianivan/kaggle-squares-in-squares/data/submission_merged_22.253319.csv')
+    df_curr = pd.read_csv('/Users/fabrianivan/kaggle-squares-in-squares/data/submission_best.csv')
     cur = {}
     for n in [232, 260, 299]:
         cur[n] = df_curr[df_curr['n'] == n].sort_values('square_id')[['x', 'y', 'angle']].to_numpy(float)

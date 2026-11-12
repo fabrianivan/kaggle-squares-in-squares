@@ -11,9 +11,10 @@ dist/
 build/
 
 # Output files
-output/*.csv
-output/*.json
-output/*.log
+output/
+submission_*.csv*
+submission_details.csv
+
 
 # Notebooks
 .ipynb_checkpoints/
@@ -35,3 +36,19 @@ Thumbs.db
 !notebooks/.gitkeep
 # Round29/21 working artifacts (regenerated, large)
 artifacts/
+.venv
+.agents
+tmp/
+*.npz
+*.npy
+
+data/harvest_*
+data/fresh_*
+data/new_*
+data/poll_*
+data/latest_*
+data/cdeotte/
+data/*.csv
+data/*.json
+*.log
+

@@ -22,7 +22,7 @@ def main():
     from tools import packing_geometry
     
     # Load baseline
-    baseline = BASE_DIR.parent / 'data' / 'submission_merged_22.253319.csv'
+    baseline = BASE_DIR.parent / 'data' / 'submission_best.csv'
     print(f"\n1. Loading baseline: {baseline.name}")
     df_curr = pd.read_csv(baseline)
     cur = {}

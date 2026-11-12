@@ -143,17 +143,14 @@ def seam_pressure(
     aa = best_a.detach().cpu().numpy().astype(float)
     proposals = []
     for k in range(batch):
-        q = repair(np.column_stack((cc[k], aa[k])), clearance=2e-9)
-        if q is not None:
-            proposals.append(q)
-    proposals.sort(key=side)
+        raw = normalize(np.column_stack((cc[k], aa[k])))
+        proposals.append(raw)
     report = dict(
         backend=backend,
         batch=batch,
         steps=completed,
         seconds=time.perf_counter() - start,
         trace=trace,
-        proposal_sides=[side(q) for q in proposals],
         before=L,
     )
     return proposals, report
@@ -170,6 +167,7 @@ if __name__ == "__main__":
     parser.add_argument("--sizes", nargs="+", type=int, default=[984, 553])
     parser.add_argument("--steps", type=int, default=240)
     parser.add_argument("--batch", type=int, default=6)
+    parser.add_argument("--shrink", type=float, default=0.0001)
     parser.add_argument("--prefix", default="portable_seam")
     args = parser.parse_args()
     bank = load_bank(args.input)
@@ -182,13 +180,30 @@ if __name__ == "__main__":
             seed=81173 + n,
             batch=args.batch,
             steps=args.steps,
+            shrink=args.shrink,
         )
-        for q in proposals[:2]:
-            if side(q) > initial + 0.015:
-                continue
-            q, _, _ = polish(q, rounds=50, max_seconds=5, trust_start=0.015)
-            if side(q) < side(bank[n]) - 1e-8:
-                bank[n] = q
+        for raw_q in proposals[:4]:
+            q, _, _ = polish(raw_q, rounds=50, max_seconds=5, trust_start=0.015)
+            q = repair(q, clearance=2e-9)
+            if q is not None and side(q) < side(bank[n]) - 1e-8:
+                import metric
+                recs = [
+                    {"n": str(n), "square_id": str(i), "x": f"{row[0]:.16f}", "y": f"{row[1]:.16f}", "angle": f"{row[2]:.16f}"}
+                    for i, row in enumerate(q)
+                ]
+                status, sc, L_cert, why = metric.evaluate_single_puzzle(n, recs)
+                if status and float(L_cert) < side(bank[n]) - 1e-8:
+                    old_s = side(bank[n])
+                    new_s = float(L_cert)
+                    gain = (old_s - new_s) / math.sqrt(n)
+                    print(f"\n*** CERTIFIED WIN on n={n}: {old_s:.8f} -> {new_s:.8f} (gain {gain:.8f})! ***\n", flush=True)
+                    bank[n] = q
+                    # Save to output/submission_final.csv immediately
+                    save_bank("output/submission_final.csv", bank)
+                    save_bank("data/submission_best.csv", bank)
+                    break
+                else:
+                    print(f"Certification check on n={n}: {why}", flush=True)
         report.update(
             n=n, after=side(bank[n]), gain=(initial - side(bank[n])) / math.sqrt(n)
         )

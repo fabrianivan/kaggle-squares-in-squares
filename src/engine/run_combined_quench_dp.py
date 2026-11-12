@@ -11,6 +11,7 @@ Runs full DP ladder search across all 1000 puzzles and certifies every improveme
 import os
 import sys
 import math
+import argparse
 import numpy as np
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -20,15 +21,28 @@ import fault_dp as F
 from ensemble import side
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--nmin", type=int, default=325)
+    parser.add_argument("--nmax", type=int, default=1000)
+    args = parser.parse_args()
+
     base_csv = os.path.join(ROOT, "output/submission_final.csv")
     extra_csvs = [
         os.path.join(ROOT, "data/new_sources/alexchilton_starter_kit/couzo.csv"),
         os.path.join(ROOT, "data/new_sources/alexchilton_starter_kit/couzo_big.csv"),
     ]
     quench_files = [
+        os.path.join(ROOT, "output", "all_quenched_gadgets_combined.npz"),
+        os.path.join(ROOT, "output", "quench_run1", "gadgets_quenched.npz"),
+        os.path.join(ROOT, "output", "quench_run2", "gadgets_quenched.npz"),
+        os.path.join(ROOT, "output", "quench_run3", "gadgets_quenched.npz"),
+        os.path.join(ROOT, "output", "quench_run4", "gadgets_quenched.npz"),
+        os.path.join(ROOT, "output", "l_cut_run", "l_cut_gadgets.npz"),
+        os.path.join(ROOT, "output", "squeeze_keys13", "gadgets_quenched.npz"),
         os.path.join(ROOT, "tmp/quench_out/gadgets_quenched.npz"),
         os.path.join(ROOT, "tmp/quench_med_out/gadgets_quenched.npz"),
         os.path.join(ROOT, "tmp/quench_large_out/gadgets_quenched.npz"),
+        os.path.join(ROOT, "tmp/quench_new_out/gadgets_quenched.npz"),
     ]
     outdir = os.path.join(ROOT, "tmp/quench_combined_out")
     os.makedirs(outdir, exist_ok=True)
@@ -67,13 +81,13 @@ def main():
 
     F.log(f"Running full DP on unified table of {len(G_all)} gadgets...")
     dp, PG, PM, PQ = F.run_dp(G_all)
-    F.log("DP completed. Searching for improvements across n=325..1000...")
+    F.log(f"DP completed. Searching for improvements across n={args.nmin}..{args.nmax}...")
 
     cur = F.load_csv(base_csv)
     total_gain = 0.0
     improvements = []
 
-    for n in range(325, 1001):
+    for n in range(args.nmin, args.nmax + 1):
         K = math.isqrt(n)
         D = n - K * K
         if D == 0: continue

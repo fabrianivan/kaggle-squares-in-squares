@@ -299,10 +299,19 @@ class MultiAxisContactLPSolver:
             sd = math.sin(d_th)
             rad = 0.5 * (1.0 + abs(cd) + abs(sd))
 
+            axis_gaps = []
             for u, is_i, ax_idx in normals:
                 proj = float(np.dot(d, u))
                 gap = abs(proj) - rad
-                if gap < 0.12:
+                axis_gaps.append((gap, u, is_i, ax_idx, proj))
+
+            # True separating axis is the one with the maximum gap
+            max_gap = max(g[0] for g in axis_gaps)
+            if max_gap > 0.15:
+                continue
+
+            for gap, u, is_i, ax_idx, proj in axis_gaps:
+                if gap >= max_gap - 1e-3:
                     sign = 1.0 if proj >= 0 else -1.0
                     nx, ny = u[0], u[1]
 
@@ -348,23 +357,40 @@ class MultiAxisContactLPSolver:
 
         for i in range(n):
             add_constraint({3 * i: -1.0, 3 * i + 2: dhx[i]}, p[i, 0] - hx[i])
-            add_constraint({3 * i: 1.0, 3 * i + 2: dhx[i], num_vars - 1: -1.0}, L - (p[i, 0] + hx[i]))
+            add_constraint({3 * i: 1.0, 3 * i + 2: dhx[i], 3 * n: -1.0}, L - (p[i, 0] + hx[i]))
             add_constraint({3 * i + 1: -1.0, 3 * i + 2: dhy[i]}, p[i, 1] - hy[i])
-            add_constraint({3 * i + 1: 1.0, 3 * i + 2: dhy[i], num_vars - 1: -1.0}, L - (p[i, 1] + hy[i]))
+            add_constraint({3 * i + 1: 1.0, 3 * i + 2: dhy[i], 3 * n: -1.0}, L - (p[i, 1] + hy[i]))
 
         if curr_row == 0:
             return None
 
-        A_ub = coo_matrix((val_entries, (row_indices, col_indices)), shape=(curr_row, num_vars)).tocsc()
+        # Add elastic L1 penalty slack variables for every constraint
+        total_vars = num_vars + curr_row
+        c_obj_elastic = np.zeros(total_vars)
+        c_obj_elastic[3 * n] = 1.0 # dL
+        c_obj_elastic[num_vars:] = 1e5 # slack penalty
+
+        elastic_bounds = list(bounds)
+        for k in range(curr_row):
+            elastic_bounds.append((0.0, None))
+            # Append -1.0 coefficient for slack variable k to row k
+            row_indices.append(k)
+            col_indices.append(num_vars + k)
+            val_entries.append(-1.0)
+
+        A_ub = coo_matrix((val_entries, (row_indices, col_indices)), shape=(curr_row, total_vars)).tocsc()
         b_ub = np.array(b_vals)
 
-        res = linprog(c_obj, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method='highs')
+        res = linprog(c_obj_elastic, A_ub=A_ub, b_ub=b_ub, bounds=elastic_bounds, method='highs')
         if not res.success:
             return None
 
-        delta = res.x
-        dL = delta[-1]
-        if dL >= -1e-12:
+        delta = res.x[:num_vars]
+        slacks = res.x[num_vars:]
+        max_slack = float(np.max(slacks)) if len(slacks) > 0 else 0.0
+
+        dL = delta[3 * n]
+        if max_slack > 1e-11 or dL >= -1e-12:
             return None
 
         new_centers = p.copy()

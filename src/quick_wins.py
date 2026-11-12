@@ -83,7 +83,7 @@ def main():
     print("="*80)
     
     # Load baseline
-    baseline_csv = '/Users/fabrianivan/kaggle-squares-in-squares/data/submission_merged_22.253319.csv'
+    baseline_csv = '/Users/fabrianivan/kaggle-squares-in-squares/data/submission_best.csv'
     print(f"\nLoading baseline: {baseline_csv}")
     df_curr = pd.read_csv(baseline_csv)
     cur = {int(n): g.sort_values('square_id')[['x', 'y', 'angle']].to_numpy(float) 

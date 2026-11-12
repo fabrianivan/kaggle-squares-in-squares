@@ -121,7 +121,7 @@ def optimize_puzzle_deep(state: PackingState, time_budget: float = 30.0, seed: i
 
 def main():
     target_puzzles = [11, 18, 19, 26, 27, 28, 29, 37, 38, 39, 41, 51, 55, 68, 70, 71, 85, 86, 87]
-    base_csv = os.path.join(ROOT, "output/submission_final.csv")
+    base_csv = os.path.join(ROOT, "data/submission_best.csv")
     out_dir = os.path.join(ROOT, "tmp/orig_improvements")
     os.makedirs(out_dir, exist_ok=True)
 

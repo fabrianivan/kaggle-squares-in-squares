@@ -15,7 +15,7 @@ def verify_worker(item):
 
 def main():
     print('Loading current baseline...')
-    df_curr = pd.read_csv('/Users/fabrianivan/kaggle-squares-in-squares/data/submission_merged_22.253319.csv')
+    df_curr = pd.read_csv('/Users/fabrianivan/kaggle-squares-in-squares/data/submission_best.csv')
     cur = {}
     for n, g in df_curr.groupby('n'):
         p = g.sort_values('square_id')[['x', 'y', 'angle']].to_numpy(float)

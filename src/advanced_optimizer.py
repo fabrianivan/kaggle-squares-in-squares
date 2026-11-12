@@ -373,7 +373,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Advanced multi-strategy optimizer')
     parser.add_argument('--baseline', type=str, 
-                       default='/Users/fabrianivan/kaggle-squares-in-squares/data/submission_merged_22.253319.csv',
+                       default='/Users/fabrianivan/kaggle-squares-in-squares/data/submission_best.csv',
                        help='Baseline submission CSV')
     parser.add_argument('--output', type=str, 
                        default='advanced_out',

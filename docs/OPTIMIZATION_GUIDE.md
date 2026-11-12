@@ -10,6 +10,24 @@ This guide documents the advanced optimization strategies developed to improve y
 
 ## Optimization Strategies
 
+### 0. Contact-Topology Island Search (`contact_topology_islands.py`)
+**Best for**: Bounded searches on jammed packings where ordinary multistart polishing has stalled.
+
+**What it does:**
+- Builds a near-contact graph and perturbs connected low-degree clusters instead of moving arbitrary squares.
+- Reuses distinct, officially certified contact topologies from `output/contact_topology_archive.npz`.
+- Applies axis reclosure and contact polishing, then keeps only official-metric-certified improvements.
+
+**Usage:**
+```bash
+python src/tools/contact_topology_islands.py \
+  --input output/submission_final.csv \
+  --targets 86 105 127 147 175 \
+  --seconds 600
+```
+
+The script writes `output/submission_topology.csv` only when it finds a certified improvement. This is an experimental search strategy; a bounded run is not expected to guarantee a score gain.
+
 ### 1. Quick Wins (`quick_wins.py`)
 **Best for**: Fast improvements on high-value targets
 
