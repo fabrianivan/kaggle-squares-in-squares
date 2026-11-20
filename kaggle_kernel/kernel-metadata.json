@@ -1,0 +1,23 @@
+{
+  "id": "fabrianivan/squares-in-squares-original-solver",
+  "title": "Squares in Squares Original Solver",
+  "code_file": "squares_in_squares_original_solver.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [
+    "optimization",
+    "geometry",
+    "linear-programming"
+  ],
+  "dataset_sources": [
+    "alexchilton/squares-in-squares-starter-kit"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [
+    "squares-in-squares"
+  ]
+}
