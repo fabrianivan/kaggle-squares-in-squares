@@ -46,7 +46,7 @@ python advanced_optimizer.py --hours 8 --workers 8
 
 ## Current Score
 
-- Best locally certified candidate: **22.106285682524** — certified by the official interval metric with 0 rejected puzzles and 500,500 rows. This improves the previously reported 22.1774646631 score by 0.0711789806. The candidate CSV and validation report are local, ignored output artifacts; they are not included in this repository.
+- Best locally certified candidate: **22.106254634553** — certified by the official interval metric with 0 rejected puzzles and 500,500 rows. This improves the previous local best by 0.000031047971. The candidate CSV and validation report are local, ignored output artifacts; they are not included in this repository.
 
 Goal: Reduce through better packings
 
